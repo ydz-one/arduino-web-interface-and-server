@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <!-- Import jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Import Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <!-- Import plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Import Roboto Font -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
+    <style>
+      * {
+        font: Roboto, Helvetica, Verdana;
+      }
+
+      .btn {
+       margin: 5px 5px 5px 5px;
+      }
+
+      .btn-header {
+        display: inline-block;
+        width: 120px;
+      }
+
+      .temp-display {
+        font-size: 80px;
+        font-size: 4vw;
+        font-weight: 100;
+      }
+
+      #plot {
+        height:400px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="jumbotron">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8">
+            <h2><b>ARDUINO WEB INTERFACE</b></h2>
+          </div>
+          <div class="col-lg-4">
+            <a href="/action?toggleTemp"><button id="lightOff" class="btn btn-success btn-header float-right">&deg;C / &deg;F</button></a>
+            <a href="/action?toggleStandby"><button id="lightOn" class="btn btn-success btn-header float-right">STANDBY</button></a>
+          </div>
+        </div>
+        <hr>
+        <br>
+        <div class="row">
+          <div class="col-lg-8">
+            <div id="plot">
+            </div>
+          </div>
+          <div class="col-lg-2">
+            <h5>MOST RECENT:</h5>
+            <h1 class="temp-display">28.4&deg;C</h1>
+            <br>
+            <h5>LOWEST:</h5>
+            <h1 class="temp-display">25.7&deg;C</h1>
+            <br>
+            <a href="/action?light=off"><button id="lightOff" class="btn btn-primary">Light Off</button></a>
+            <a href="/action?light=on"><button id="lightOn"  class="btn btn-primary">Light On</button></a>
+          </div>
+          <div class="col-lg-2">
+            <h5>AVERAGE:</h5>
+            <h1 class="temp-display">27.9&deg;C</h1>
+            <br>
+            <h5>HIGHEST:</h5>
+            <h1 class="temp-display">29.6&deg;C</h1>
+          </div>
+        </div>
+        <h5>TIME ELAPSED: &nbsp; <span id="time-elapsed">00:10:23</span></h5>
+      </div>
+    </div>
+
+    <script>
+	    TESTER = document.getElementById('plot');
+	    Plotly.plot( TESTER, [{
+	    x: [1, 2, 3, 4, 5],
+	    y: [1, 2, 4, 8, 16] }], {
+	    margin: { t: 0 } } );
+    </script>
+  </body>
+</html>
