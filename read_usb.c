@@ -27,6 +27,7 @@ void* read_usb(void* file_name) {
 
   // try to open the file for reading and writing
   // you may need to change the flags depending on your platform
+  printf("%s\n", (char*)file_name);
   int fd = open((char*)file_name, O_RDWR | O_NOCTTY | O_NDELAY);
   
   if (fd < 0) {
@@ -49,10 +50,11 @@ void* read_usb(void* file_name) {
     int bytes_read = read(fd, buffer + counter, 100 - counter);
     counter += bytes_read;
     if(buffer[counter - 1] == '\n'){
-      counter = 0;
       break_counter++;
+      counter = 0;
       //printf("%s", buffer);
       if(break_counter > 5){
+        close(fd);
         break;
       }
       memset(buffer, '\0', 100);
