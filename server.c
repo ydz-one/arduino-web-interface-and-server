@@ -115,8 +115,8 @@ int start_server(int PORT_NUMBER, char* file_name)
       printf("\nPlease specify a port number greater than 1024\n");
       exit(-1);
     }
-
-    int ret_val_1 = pthread_create(&t1, NULL, &read_usb, &file_name);
+    //printf("%s\n", file_name);
+    int ret_val_1 = pthread_create(&t1, NULL, &read_usb, file_name);
     start_server(port_number, file_name);
 
     int ret_val_2 = pthread_join(t1, NULL);
