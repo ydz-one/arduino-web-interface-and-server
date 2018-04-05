@@ -1,0 +1,43 @@
+* {
+  font: Roboto, Helvetica, Verdana;
+}
+
+body {
+  background-color: #eee;
+}
+
+.btn {
+ margin: 5px 5px 5px 5px;
+}
+
+.btn-header {
+  display: inline-block;
+  width: 120px;
+}
+
+.full-width {
+  width: 100%;
+  margin: 5px 5px 5px 5px;
+}
+
+.jumbotron {
+  padding-bottom: 0;
+  background-color: #eee;
+}
+
+.temp-display {
+  font-size: 80px;
+  font-size: 4vw;
+  font-weight: 100;
+}
+
+.time-display {
+  font-size: 70px;
+  font-size: 3.5vw;
+  font-weight: 100;
+}
+
+#plot {
+  height:400px;
+  background-color: #eee;
+}
