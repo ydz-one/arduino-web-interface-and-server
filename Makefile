@@ -1,14 +1,12 @@
-CC = clang
-ARGS = -Wall
+TARGETS = frontend
 
-all: read_usb server
+all: $(TARGETS)
 
-read_usb: 
-	$(CC) -o $(ARGS) read_usb.c
 
-server: read_usb
-	$(CC) -o $(ARGS) -g -lpthread server.c
+frontend: frontend.cc request.cc response.cc
+	g++ $^ -I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib -lcrypto -lpthread -g -o $@
 
-clean: 
-	rm -rf read_usb server
+
+clean::
+	rm -fv $(TARGETS) *~
 
