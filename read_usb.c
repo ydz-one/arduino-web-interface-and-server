@@ -12,7 +12,7 @@
 /*
 This code configures the file descriptor for use as a serial port.
 */
-char buffer[100];
+//char buffer[100];
 
 void configure(int fd) {
   struct  termios pts;
@@ -22,7 +22,7 @@ void configure(int fd) {
   tcsetattr(fd, TCSANOW, &pts);
 }
 
-
+/*
 void* read_usb(void* file_name) {
 
   // try to open the file for reading and writing
@@ -43,13 +43,13 @@ void* read_usb(void* file_name) {
   /*
     Write the rest of the program below, using the read and write system calls.
   */
-  
+  /*
   int counter = 0;
   int break_counter = 0;
   while(1){
-    int bytes_read = read(fd, buffer + counter, 100 - counter);
+    int bytes_read = read(fd, buffer_temperature + counter, 100 - counter);
     counter += bytes_read;
-    if(buffer[counter - 1] == '\n'){
+    if(buffer_temperature[counter - 1] == '\n'){
       break_counter++;
       counter = 0;
       //printf("%s", buffer);
@@ -57,8 +57,8 @@ void* read_usb(void* file_name) {
         close(fd);
         break;
       }
-      memset(buffer, '\0', 100);
+      memset(buffer_temperature, '\0', 100);
     }
   }
-  return (void*)buffer;
-}
+  return (void*)buffer_temperature;
+}*/

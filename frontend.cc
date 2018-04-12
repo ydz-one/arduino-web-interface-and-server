@@ -121,6 +121,3 @@ void* handle_connection(void *arg) {
 	close(client_fd);
 	pthread_exit(NULL);
 }
-
-
-
