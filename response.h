@@ -13,6 +13,7 @@
 
 using namespace std;
 
+extern int fd_usb;
 
 
 class response {

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-extern bool debugInfo;
+//extern bool debugInfo;
 
 class request {
 	public:

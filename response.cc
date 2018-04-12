@@ -27,10 +27,11 @@ using namespace std;
 
 //Macro
 #define HOME "/"
-#define SIGNIN_CSS "/css/signin.css"
-#define EMAIL "/email"
+#define STYLE_CSS "style.css"
+#define SCRIPT_JS "script.js"
+#define GRAPH_JS "graph.js"
+#define TOGGLE_TEMP "/action?toggleTemp"
 #define FILES "/file"
-#define SIGNUP "/signup"
 #define OK "200"
 #define NOTFOUND "404"
 
@@ -42,6 +43,7 @@ string getHtml(string filename);
 string find_filename(vector<char> message);
 vector<char> find_file_content(vector<char> message);
 void store_file(string dir, string filename, vector<char> content);
+void change_temp();
 
 /*
  * constructor of response and send back reponse to the client
@@ -69,23 +71,30 @@ void response::handle_get(string path, int client_fd) {
 	if (strcasecmp(path.c_str(), HOME) == 0) {
 		printf("handle home!!!\n");
 		// Home page
-		string address("./html/signin.html");
+		string address("./html/index.html");
 		string type("text/html");
 		reply(address, type, client_fd);
-	} else if (strcasecmp(path.c_str(), SIGNIN_CSS) == 0) {
+	} else if (strcasecmp(path.c_str(), STYLE_CSS) == 0) {
 		// pass css for the home page to the browser
-		string address("./html/css/signin.css");
+		string address("./html/style.css");
 		string type("text/css");
 		reply(address, type, client_fd);
-	} else if (strcasecmp(path.c_str(), EMAIL) == 0) {
+	} else if (strcasecmp(path.c_str(), SCRIPT_JS) == 0) {
 		// email page
-		string address("./html/email.html");
-		string type("text/html");
+		string address("./html/script.js");
+		string type("application/javascript");
 		reply(address, type, client_fd);
-	} else if (strcasecmp(path.c_str(), FILES) == 0) {
+	} else if (strcasecmp(path.c_str(), GRAPH_JS) == 0) {
 		// file page
-		string address("./html/file.html");
+		string address("./html/graph.js");
+		string type("application/javascript");
+		reply(address, type, client_fd);
+	}
+	else if (strcasecmp(path.c_str(), TOGGLE_TEMP) == 0) {
+		// file page
+		string address("./html/index.html");
 		string type("text/html");
+		change_temp();
 		reply(address, type, client_fd);
 	}
 }
@@ -176,12 +185,12 @@ void response::reply(string address, string type, int client_fd) {
 	string server_response(this->version);
 	server_response += " " + this->status + " " + "OK" + "\r\n";
 	server_response += string("Content-type: ") + string(type) + string("\r\n");
-	server_response += "\n";
-	printf("-----------get!!\n");
+	server_response += "\r\n";
+	//printf("-----------get!!\n");
 	server_response += getHtml(address);
-	printf("-----------get!!\n");
+	//printf("-----------get!!\n");
 	char res[10000];
-	printf("server_reponse: %s\n", server_response.c_str());
+	//printf("server_reponse: %s\n", server_response.c_str());
 	strcpy(res, server_response.c_str());
 	do_write(client_fd, res, strlen(server_response.c_str()) + 1);
 }
@@ -316,6 +325,6 @@ void store_file(string dir, string filename, vector<char> content) {
 	fclose(fp);
 }
 
-
-
-
+void change_temp(){
+	int byte_written = write(fd_usb, "t", 1 * sizeof(char));
+}

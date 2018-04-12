@@ -118,7 +118,7 @@ request::request(int client_fd) {
 			token = strtok(NULL, " ");
 			this->version = string(token, strlen(token) - 1); // skip the final \n
 			// print debug information
-			if (debugInfo) {
+			if (true) {
 				printf("[%d] Method: %s\n", client_fd, this->method.c_str());
 				printf("[%d] path: %s\n", client_fd, this->path.c_str());
 				printf("[%d] HTTP Version: %s\n", client_fd, this->version.c_str());
@@ -137,52 +137,9 @@ request::request(int client_fd) {
 			printf("message size: %lu\n", this->message.size());
 		}
 
-		//free(copy);
-
-
-		// remove the used line statement from buffer
-//		char *temp = buffer;
-//		while (temp != line_end) {
-//			*temp = '\0'; // clear old line
-//			temp++;
-//		}
-//		// copy new line to the start of buffer
-//		int len = strlen(line_end);
-//		for (int i = 0; i < len; i++) {
-//			buffer[i] = line_end[i];
-//			line_end[i] = '\0';
-//		}
-//		buffer[len] = '\0';
-//
-//		// move line end to end of buffer
-//		line_end = buffer;
-//		while (*line_end != '\0') {
-//			line_end++;
-//		}
-//
+		
 
 	}
 }
 
 
-/*
- * read from sever or client
- * return true if read successfully and found a line otherwise return false
- */
-//bool do_read(int socket_fd, char *buffer, char **line_end) {
-//
-//	int n = read(socket_fd, *line_end, BUFFERSIZE - strlen(buffer));
-//	if (n <= 0) {
-//		return false;
-//	}
-//	char *tmp = buffer;
-//	while ((tmp = strstr(buffer, "\r\n")) == NULL ) {
-//		*line_end += n;// go to end of current statement
-//		n = read(socket_fd, *line_end, BUFFERSIZE - strlen(buffer)); // keep reading
-//		if (n <= 0) {
-//			return false;
-//		}
-//	}
-//	*line_end = tmp;// copy the end pointer to line_end
-//	return true;
-//}
