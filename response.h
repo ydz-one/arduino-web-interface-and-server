@@ -25,6 +25,7 @@ class response {
 		void reply(string address, string type, int client_fd);
 		void replace_reply(string address, string type, int client_fd,
 				string target, string replacement);
+		void reply_file(string address, string type, int client_fd);
 		void handle_get(string path, int client_fd);
 		void handle_post(string path, int client_fd, vector<char> message);
 		void handle_signin(string path, int client_fd, vector<char> message);

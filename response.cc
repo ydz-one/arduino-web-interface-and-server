@@ -27,9 +27,9 @@ using namespace std;
 
 //Macro
 #define HOME "/"
-#define STYLE_CSS "style.css"
-#define SCRIPT_JS "script.js"
-#define GRAPH_JS "graph.js"
+#define STYLE_CSS "/style.css"
+#define SCRIPT_JS "/script.js"
+#define GRAPH_JS "/graph.js"
 #define TOGGLE_TEMP "/action?toggleTemp"
 #define FILES "/file"
 #define OK "200"
@@ -44,24 +44,19 @@ string find_filename(vector<char> message);
 vector<char> find_file_content(vector<char> message);
 void store_file(string dir, string filename, vector<char> content);
 void change_temp();
+void read_file_into_vector(vector<char>& res, string address);
 
 /*
  * constructor of response and send back reponse to the client
  */
 response::response(int client_fd, request req){
-	printf("here!!!!\n");
 	string path = req.path;
-	printf("path : %s\n", path.c_str());
 	this->version = req.version.substr(0,8); // skip \r\n
 	if (strcasecmp(req.method.c_str(),"get") == 0) {
 		// handle get request
 		this->status = OK;
 		handle_get(path, client_fd);
-	} else if (strcasecmp(req.method.c_str(), "post") == 0) {
-		// handle post request
-		this->status = OK;
-		handle_post(path, client_fd, req.message);
-	}
+	} 
 }
 
 /*
@@ -69,7 +64,6 @@ response::response(int client_fd, request req){
  */
 void response::handle_get(string path, int client_fd) {
 	if (strcasecmp(path.c_str(), HOME) == 0) {
-		printf("handle home!!!\n");
 		// Home page
 		string address("./html/index.html");
 		string type("text/html");
@@ -83,12 +77,12 @@ void response::handle_get(string path, int client_fd) {
 		// email page
 		string address("./html/script.js");
 		string type("application/javascript");
-		reply(address, type, client_fd);
+		reply_file(address, type, client_fd);
 	} else if (strcasecmp(path.c_str(), GRAPH_JS) == 0) {
 		// file page
 		string address("./html/graph.js");
 		string type("application/javascript");
-		reply(address, type, client_fd);
+		reply_file(address, type, client_fd);
 	}
 	else if (strcasecmp(path.c_str(), TOGGLE_TEMP) == 0) {
 		// file page
@@ -100,33 +94,22 @@ void response::handle_get(string path, int client_fd) {
 }
 
 /*
- * handle post request from client
+ * reply the file to the client
  */
-void response::handle_post(string path, int client_fd, vector<char> message) {
-	if (strcasecmp(path.c_str(), HOME) == 0) {
-		// handle sign in request
-		handle_signin(path, client_fd, message);
-	} else if (strcasecmp(path.c_str(), FILES) == 0) {
-		// handle upload file
-		handle_upload(path, client_fd, message);
-	}
+void response::reply_file(string address, string type, int client_fd) {
+	string server_response(this->version);
+	server_response += " " + this->status + " " + "OK" + "\r\n";
+	server_response += string("Content-type: ") + string(type) + string("\r\n");
+	server_response += "\r\n";
+
+	//convert string to vector
+	vector<char> res(server_response.begin(), server_response.end());
+
+	// read character to the vector
+	read_file_into_vector(res, address);
+	do_write(client_fd, &res[0], res.size());
 }
 
-/*
- * handle upload request
- */
-void response::handle_upload(string path, int client_fd, vector<char> message) {
-	// find filename
-	string filename = find_filename(message);
-	printf("filename: %s\n", filename.c_str());
-
-	// find content
-	vector<char> content = find_file_content(message);
-
-	// store the file
-	string dir("./Test");
-	store_file(dir, filename, content);
-}
 
 /*
  * handle sign in post request
@@ -186,11 +169,10 @@ void response::reply(string address, string type, int client_fd) {
 	server_response += " " + this->status + " " + "OK" + "\r\n";
 	server_response += string("Content-type: ") + string(type) + string("\r\n");
 	server_response += "\r\n";
-	//printf("-----------get!!\n");
 	server_response += getHtml(address);
-	//printf("-----------get!!\n");
+
 	char res[10000];
-	//printf("server_reponse: %s\n", server_response.c_str());
+	printf("server_reponse: %s\n", server_response.c_str());
 	strcpy(res, server_response.c_str());
 	do_write(client_fd, res, strlen(server_response.c_str()) + 1);
 }
@@ -285,46 +267,26 @@ string getHtml(string filename) {
 	return content;
 }
 
-/*
- * return the filename of the uploaded file
- */
-string find_filename(vector<char> message) {
-	string tmp(message.begin(), message.end());
-	size_t index = tmp.find("filename=", 0);
-	// skip the filename
-	index += 10;
-	// find position of second "
-	size_t end_index = tmp.find("\"", index);
-	return tmp.substr(index, end_index - index);
-}
-
-/*
- * return the content of the uploaded file
- */
-vector<char> find_file_content(vector<char> message) {
-	vector<char> res;
-	vector<char> start_char = {'\r', '\n', '\r', '\n'};
-	vector<char> end_char = {'-', '-', '-', '-', '-', '-'};
-	// find the position of \r\n and skip them
-	auto start = search(message.begin(), message.end(), start_char.begin(), start_char.end()) + 4;
-	// find the position of ------
-	auto end = search(start, message.end(), end_char.begin(), end_char.end()) - 2; // skip \r\n
-	res.insert(res.end(), start, end);
-	return res;
-}
-
-/*
- * store the file into the given directory
- */
-void store_file(string dir, string filename, vector<char> content) {
-	string address(dir);
-	address += string("/") + filename;
-	FILE* fp;
-	fp = fopen(address.c_str(), "wb");
-	fwrite(&content[0], 1, content.size(), fp);
-	fclose(fp);
-}
 
 void change_temp(){
 	int byte_written = write(fd_usb, "t", 1 * sizeof(char));
+}
+
+/*
+ * read file into a vector of character
+ */
+void read_file_into_vector(vector<char>& res, string address) {
+	ifstream file;
+	file.open(address.c_str(), ios::binary);
+
+	if (!file) {
+		fprintf(stderr, "cannot open given file!!!\n");
+		exit(1);
+	}
+
+	char data;
+	while (file.get(data)) {
+		// keep reading from the file
+		res.push_back(data);
+	}
 }
