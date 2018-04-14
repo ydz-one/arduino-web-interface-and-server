@@ -1,25 +1,19 @@
 /***************************************************************************
-
                      Copyright 2008 Gravitech
                         All Rights Reserved
-
 ****************************************************************************/
 
 /***************************************************************************
  File Name: I2C_7SEG_Temperature.pde
-
  Hardware: Arduino Diecimila with 7-SEG Shield
-
  Description:
    This program reads I2C data from digital thermometer and display it on 7-Segment
-
  Change History:
    03 February 2008, Gravitech - Created
-
 ****************************************************************************/
 
 #include <Wire.h> 
-#include <String.h>
+//#include <String.h>
  
 #define BAUD (9600)    /* Serial baud define */
 #define _7SEG (0x38)   /* I2C address for 7-Segment */
@@ -45,7 +39,6 @@ void UpdateRGB (byte);
 
 /***************************************************************************
  Function Name: setup
-
  Purpose: 
    Initialize hardwares.
 ****************************************************************************/
@@ -62,7 +55,6 @@ void setup()
 
 /***************************************************************************
  Function Name: loop
-
  Purpose: 
    Run-time forever loop.
 ****************************************************************************/
@@ -117,8 +109,8 @@ void loop()
   {
     if (Serial.available() > 0) {
       char tmp = Serial.read();
-      if (tmp == 'f' || tmp == 'F') {
-        isF = true;
+      if (tmp == 't' || tmp == 'T') {
+        isF = !isF;
       }
     }
     Wire.requestFrom(THERM, 2);
@@ -130,7 +122,7 @@ void loop()
     
     /* Display temperature on the serial monitor. 
        Comment out this line if you don't use serial monitor.*/
-    SerialMonitorPrint (Temperature_H, Decimal, IsPositive);
+    SerialMonitorPrint (Temperature_H, Decimal, IsPositive, isF);
     
     /* Update RGB LED.*/
     UpdateRGB (Temperature_H);
@@ -144,7 +136,6 @@ void loop()
 
 /***************************************************************************
  Function Name: Cal_temp
-
  Purpose: 
    Calculate temperature from raw data.
 ****************************************************************************/
@@ -160,15 +151,23 @@ void Cal_temp (int& Decimal, byte& High, byte& Low, bool& sign, bool& isF)
   Low = Low >> 4; 
   Decimal = Low;
   Decimal = Decimal * 625;      /* Each bit = 0.0625 degree C */
-
+  //Serial.println(High);
+  //Serial.println(Decimal);
+  //Serial.println(Decimal, BIN);
+  double temp = High + Decimal / 10000.0;
+  
+  
   if (isF) {
     // convert C to F
-    Decimal *= 1.8;
-    High = High * 1.8 + 32;
-    if (Decimal > 1) {
-      High += 1;
-    }
+   
+    
+    temp = 1.8 * temp + 32;
+    High = (int)temp;
+    Decimal = (int)((temp - High) * 10000);
+    
   }
+  //Serial.println(High);
+  //Serial.println(Decimal);
 
   if (sign == 0)                /* if temperature is negative */
   {
@@ -178,13 +177,12 @@ void Cal_temp (int& Decimal, byte& High, byte& Low, bool& sign, bool& isF)
    
 
 
-  Serial.println(High, DEC);
-  Serial.println(Decimal, DEC);
+  //Serial.println(High, DEC);
+  //Serial.println(Decimal, DEC);
 }
 
 /***************************************************************************
  Function Name: Dis_7SEG
-
  Purpose: 
    Display number on the 7-segment display.
 ****************************************************************************/
@@ -221,14 +219,15 @@ void Dis_7SEG (int Decimal, byte High, byte Low, bool sign, bool isF)
   {
     Number = Number | B10000000;
   }
-  Send7SEG (Digit,Number);  
+  Send7SEG (Digit,Number);
   Digit--;                        /* Subtract 1 digit */
   
   if (Digit > 0)                  /* Display decimal point if there is more space on 7-SEG */
   {
     Number = Decimal / 1000;
     if (Number >= 10) {
-      Number /= 10;
+      //Send7SEG (Digit+1,Number);
+      Number = Number % 10;
     }
     Send7SEG (Digit,NumberLookup[Number]);
     Digit--;
@@ -252,7 +251,6 @@ void Dis_7SEG (int Decimal, byte High, byte Low, bool sign, bool isF)
 
 /***************************************************************************
  Function Name: Send7SEG
-
  Purpose: 
    Send I2C commands to drive 7-segment display.
 ****************************************************************************/
@@ -267,7 +265,6 @@ void Send7SEG (byte Digit, byte Number)
 
 /***************************************************************************
  Function Name: UpdateRGB
-
  Purpose: 
    Update RGB LED according to define HOT and COLD temperature. 
 ****************************************************************************/
@@ -294,23 +291,39 @@ void UpdateRGB (byte Temperature_H)
 
 /***************************************************************************
  Function Name: SerialMonitorPrint
-
  Purpose: 
    Print current read temperature to the serial monitor.
 ****************************************************************************/
-void SerialMonitorPrint (byte Temperature_H, int Decimal, bool IsPositive)
+void SerialMonitorPrint (byte Temperature_H, int Decimal, bool IsPositive, bool IsF)
 {
-    Serial.print("The temperature is ");
+    //Serial.print("The temperature is ");
     if (!IsPositive)
     {
       Serial.print("-");
     }
     Serial.print(Temperature_H, DEC);
     Serial.print(".");
+    if(Decimal < 10){
+      Serial.print("000");
+    }
+    else if(Decimal < 100){
+      Serial.print("00");
+    }
+    else if(Decimal < 1000){
+      Serial.print("0");
+    }
     Serial.print(Decimal, DEC);
-    Serial.print(" degrees C");
-    Serial.print("\n\n");
+    
+    if(IsF){
+      Serial.print(" F");
+    }
+    else{
+      Serial.print(" C");
+    }
+    
+    Serial.print("\n");
 }
     
+
 
 
