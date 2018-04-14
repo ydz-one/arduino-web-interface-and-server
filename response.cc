@@ -44,7 +44,11 @@ string find_filename(vector<char> message);
 vector<char> find_file_content(vector<char> message);
 void store_file(string dir, string filename, vector<char> content);
 void change_temp();
+string get_temperature_string();
 void read_file_into_vector(vector<char>& res, string address);
+
+bool isF = false;
+bool isFirstTime = true;
 
 /*
  * constructor of response and send back reponse to the client
@@ -65,14 +69,15 @@ response::response(int client_fd, request req){
 void response::handle_get(string path, int client_fd) {
 	if (strcasecmp(path.c_str(), HOME) == 0) {
 		// Home page
-		string address("./html/index.html");
+		string address("./html/index-one-page.html");
 		string type("text/html");
-		reply(address, type, client_fd);
+		string res = get_temperature_string();
+		replace_reply(address, type, client_fd, string("$temp"), res);
 	} else if (strcasecmp(path.c_str(), STYLE_CSS) == 0) {
 		// pass css for the home page to the browser
 		string address("./html/style.css");
 		string type("text/css");
-		reply(address, type, client_fd);
+		reply_file(address, type, client_fd);
 	} else if (strcasecmp(path.c_str(), SCRIPT_JS) == 0) {
 		// email page
 		string address("./html/script.js");
@@ -86,10 +91,13 @@ void response::handle_get(string path, int client_fd) {
 	}
 	else if (strcasecmp(path.c_str(), TOGGLE_TEMP) == 0) {
 		// file page
+
 		string address("./html/index.html");
 		string type("text/html");
 		change_temp();
-		reply(address, type, client_fd);
+		sleep(1);
+		string res = get_temperature_string();
+		replace_reply(address, type, client_fd, string("$temp"), res);
 	}
 }
 
@@ -111,46 +119,12 @@ void response::reply_file(string address, string type, int client_fd) {
 }
 
 
-/*
- * handle sign in post request
- */
-void response::handle_signin(string path, int client_fd, vector<char> message) {
-	// parse the message to get username and password
-	char copy[256];
-	string info(message.begin(), message.end());
-	printf("info: %s\n", info.c_str());
-	strcpy(copy, info.c_str());
-	char *token;
-	token = strtok(copy, "&");
-
-	// get username
-	char *subToken;
-	char copy2[256];
-	strcpy(copy2, token);
-	token = strtok(NULL, " &");
-	subToken = strtok(copy2, "=");
-	subToken = strtok(NULL, "=");
-	string username(subToken);
-
-	// get password
-	char copy3[256];
-	strcpy(copy3, token);
-	char *subToken2;
-	subToken2 = strtok(copy3, "=");
-	subToken2 = strtok(NULL, "=");
-	string password(subToken2);
-
-	// reply to the client
-	string address("./html/signin_successful.html");
-	string type("text/html");
-	replace_reply(address, type, client_fd, string("$user"), username);
-}
 
 /*
  * replace html file with message body and reply to the client
  */
 void response::replace_reply(string address, string type, int client_fd,
-							string target, string replacement) {
+	string target, string replacement) {
 	string server_response(this->version);
 	server_response += " " + this->status + " " + "OK" + "\r\n";
 	server_response += string("Content-type: ") + string(type) + string("\r\n");
@@ -289,4 +263,59 @@ void read_file_into_vector(vector<char>& res, string address) {
 		// keep reading from the file
 		res.push_back(data);
 	}
+}
+
+string get_temperature_string(){
+	/*
+	string temperature_token[2];
+	char* token;
+	char* token_array[100];
+	while(true){
+		token = strtok(temperature, " ");
+		strcpy(token_array, token);
+		temperature_token[] = string(token_array).substr(0,4);
+		token = strtok(NULL, " ");
+		strcpy(token_array, token);
+		temperature_token[1] = string(token_array);
+		if(temperature_token[1][0] == 'F' && !isF){
+			break;
+		}
+		else if(temperature_token[1][0] == 'C' && isF){
+			break;
+		}
+	}
+	string res = temperature_token[0] + string("&deg;") + temperature_token[1];
+	return res; */
+	string res;
+	char token_array[100];
+	char token_array_2[100];
+	printf("%s\n", temperature);
+	
+		char* token;
+		//char token_array[100];
+		
+		token = strtok(temperature, " ");
+		//printf("%s\n",token);
+		
+		strcpy(token_array, token);
+		//printf("%s\n", token);
+		res = string(token_array);
+		res = res.substr(0, 4);
+		token = strtok(NULL, " ");
+		res += string("&deg;");
+		
+		strcpy(token_array_2, token);
+		/*
+		if(isF && token_array[0] == 'C' || isFirstTime){
+			isFirstTime = false;
+			isF = false;
+			break;
+		}
+		else if(!isF && token_array[0] == 'F'){
+			isF = true;
+			break;
+		}
+		*/
+	res += string(token_array_2);
+	return res;
 }

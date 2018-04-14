@@ -40,9 +40,7 @@ request::request(int client_fd) {
 	while (true) {
 		// find \r\n
 		vector<char> end_char = {'\r', '\n'};
-		printf("end_char size: %lu\n", end_char.size());
-		printf("vector size: %lu\n", buffer.size());
-		printf("end: %d\n", end);
+		
 		auto iter = search(buffer.begin() + end, buffer.end(), end_char.begin(), end_char.end());
 		if (iter != buffer.end()) {
 			// buffer has a statement

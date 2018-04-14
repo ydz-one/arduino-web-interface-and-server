@@ -48,8 +48,7 @@ void* handle_request(void* fd_pointer){
 
 }
 
-void* start_server(void* arg)
-{
+void* start_server(void* arg){
 
       // structs to represent the server and client
   //prinf("buffer is: %s\n", );
@@ -75,10 +74,7 @@ void* start_server(void* arg)
       server_addr.sin_addr.s_addr = INADDR_ANY; 
       bzero(&(server_addr.sin_zero),8); 
 
-      struct timeval tv;
-      tv.tv_sec = 0;
-      tv.tv_usec = 1000;
-      setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+      
       
       // 2. bind: use the socket and associate it with the port number
       if (bind(sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1) {
@@ -104,6 +100,10 @@ void* start_server(void* arg)
         int sin_size = sizeof(struct sockaddr_in);
 
         int fd = accept(sock, (struct sockaddr *)&client_addr,(socklen_t *)&sin_size);
+        struct timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 1000;
+        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
         if (fd != -1) {
           pthread_t thread_request;
           printf("Server got a connection from (%s, %d)\n", inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));

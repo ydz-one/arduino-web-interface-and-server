@@ -14,6 +14,7 @@
 using namespace std;
 
 extern int fd_usb;
+extern char temperature[100];
 
 
 class response {
