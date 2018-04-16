@@ -1,4 +1,24 @@
-// Code for elapsed time display
+// Load temperature from Arduino
+loadTemp();
+
+function loadTemp() {
+  console.log('calling load temp');
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'data.txt', true);
+
+  xhr.onload = function() {
+    if (this.status == 200) {
+      document.getElementById('current-temp').innerHTML = this.responseText;
+    } else {
+      document.getElementById('current-temp').innerHTML = 'No Data';
+    }
+  };
+
+  xhr.send()
+  setTimeout(loadTemp, 5000);
+}
+
+// Elapsed time display
 var startTime = new Date();
 var mSecs = 0;
 
