@@ -75,7 +75,6 @@ request::request(int client_fd) {
 			// copy character to vector
 			for (int i = 0; i < read_characters; i++) {
 				buffer.push_back(buffer_char[i]);
-				//printf("buffer[%d]: %c\n", i, buffer[i]);
 				buffer_char[i] = 0; // clear buffer_char
 			}
 
@@ -85,15 +84,10 @@ request::request(int client_fd) {
 			end += 2; // skip \r\n
 		}
 		string receive(buffer.begin() + start, buffer.begin() + end);// get the line of statement
-		//end = end + 1; // skip \n
 		if (!message_body) {
 			start = end; // change start and skip '\n'
 		}
-//		if (message_body) {
-//			line_end += 1; // skip \r
-//		} else {
-//			line_end += 2; // skip \r\n
-//		}
+
 		char copy[20480];
 		strcpy(copy, receive.c_str());
 

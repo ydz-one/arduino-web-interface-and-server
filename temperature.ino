@@ -1,3 +1,4 @@
+
 /***************************************************************************
                      Copyright 2008 Gravitech
                         All Rights Reserved
@@ -65,6 +66,9 @@ void loop()
   byte Temperature_H, Temperature_L, counter, counter2;
   bool IsPositive;
   bool isF = false; // default Celsius
+  bool changeColor = false;
+  bool isLightOn = false;
+  bool isStandBy = false;
   
   /* Configure 7-Segment to 12mA segment output current, Dynamic mode, 
      and Digits 1, 2, 3 AND 4 are NOT blanked */
@@ -104,13 +108,26 @@ void loop()
     Wire.endTransmission();
     delay (250);
   }
-  
+
+  int colorNumber = 0;
   while (1)
   {
     if (Serial.available() > 0) {
       char tmp = Serial.read();
       if (tmp == 't' || tmp == 'T') {
         isF = !isF;
+      }
+
+      if (tmp == 'c' || tmp == 'C') {
+        changeColor = true;
+      } 
+
+      if (tmp == 'l' || tmp == 'L') {
+        isLightOn = !isLightOn;
+      }
+
+      if (tmp == 's' || tmp == 'S') {
+        isStandBy = !isStandBy;
       }
     }
     Wire.requestFrom(THERM, 2);
@@ -123,12 +140,30 @@ void loop()
     /* Display temperature on the serial monitor. 
        Comment out this line if you don't use serial monitor.*/
     SerialMonitorPrint (Temperature_H, Decimal, IsPositive, isF);
-    
-    /* Update RGB LED.*/
-    UpdateRGB (Temperature_H);
-    
-    /* Display temperature on the 7-Segment */
-    Dis_7SEG (Decimal, Temperature_H, Temperature_L, IsPositive, isF);
+
+    if (isLightOn) {
+      if (changeColor) {
+      /* change color number*/
+      if (colorNumber == 2) {
+        colorNumber = 0;
+      } else {
+        colorNumber ++;
+      }
+        changeColor = false;
+      }
+      /* Update RGB LED.*/
+      SetRGB (colorNumber);
+    } else {
+      setColor(0, 0, 0); // turn off the light
+    }
+
+    if (!isStandBy) {
+        /* Display temperature on the 7-Segment */
+        Dis_7SEG (Decimal, Temperature_H, Temperature_L, IsPositive, isF);
+    } else {
+      // in the stand by mode
+        
+    }
     
     delay (1000);        /* Take temperature read every 1 second */
   }
@@ -264,28 +299,31 @@ void Send7SEG (byte Digit, byte Number)
 }
 
 /***************************************************************************
- Function Name: UpdateRGB
+ Function Name: SetRGB
  Purpose: 
-   Update RGB LED according to define HOT and COLD temperature. 
+   Set the RGB light to different color
 ****************************************************************************/
 
-void UpdateRGB (byte Temperature_H)
+void SetRGB (int colorNumber)
 {
   digitalWrite(RED, LOW);
   digitalWrite(GREEN, LOW);
   digitalWrite(BLUE, LOW);        /* Turn off all LEDs. */
   
-  if (Temperature_H <= COLD)
+  if (colorNumber == 0)
   {
-    digitalWrite(BLUE, HIGH);
+    // RED
+    setColor(255,0,0);
   }
-  else if (Temperature_H >= HOT)
+  else if (colorNumber == 1)
   {
-    digitalWrite(RED, HIGH);
+    // YELLOW
+        setColor(255,80,0);
   }
   else 
   {
-    digitalWrite(GREEN, HIGH);
+    // GREEN
+        setColor(0, 255,0);
   }
 }
 
@@ -323,7 +361,22 @@ void SerialMonitorPrint (byte Temperature_H, int Decimal, bool IsPositive, bool 
     
     Serial.print("\n");
 }
-    
 
+/***************************************************************************
+ Function Name: setColor
+ Purpose: 
+   set a rgb color
+****************************************************************************/
+void setColor(int red, int green, int blue)
+{
+  #ifdef COMMON_ANODE
+    red = 255 - red;
+    green = 255 - green;
+    blue = 255 - blue;
+  #endif
+  analogWrite(RED, red);
+  analogWrite(GREEN, green);
+  analogWrite(BLUE, blue);  
+}
 
 
