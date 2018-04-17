@@ -284,11 +284,13 @@ void parse_temperature() {
 
 
 	ofstream file;
-	file.open("./html/data.txt");
-	file << temp_C << "\n";
-	file << min_temperature_C << "\n";
-	file << max_temperature_C << "\n";
-	file << avg_temperature_C << "\n";
+	file.open("./html/data.json");
+	file << string("{") << "\n";
+	file << string("\"current\" : ") << atof(temp_C.c_str()) << string(",\n");
+	file << string("\"highest\" : ") << atof(max_temperature_C.c_str()) << string(",\n");
+	file << string("\"lowest\" : ") << atof(min_temperature_C.c_str()) << string(",\n");
+	file << string("\"average\" : ") << atof(avg_temperature_C.c_str()) << string("\n");
+	file << string("}");
 
 	file.close();
 }
