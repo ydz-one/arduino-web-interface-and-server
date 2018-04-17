@@ -19,6 +19,9 @@ http://www.binarii.com/files/papers/c_sockets.txt
 #include <fcntl.h>
 #include <signal.h>
 #include <pthread.h>
+#include <json/json.h>
+#include <iostream>
+#include <fstream>
 #include "response.h"
 #include "request.h"
 
@@ -276,6 +279,18 @@ void parse_temperature() {
 	if (ftemp_C < atof(min_temperature_C.c_str())) {
 		min_temperature_C = temp_C;
 	}
+
+	// write the temperature to json
+
+
+	ofstream file;
+	file.open("./html/data.txt");
+	file << temp_C << "\n";
+	file << min_temperature_C << "\n";
+	file << max_temperature_C << "\n";
+	file << avg_temperature_C << "\n";
+
+	file.close();
 }
 
 /*

@@ -35,6 +35,7 @@ using namespace std;
 #define TOGGLE_LIGHT "/action?toggleLight"
 #define CHANGE_COLOR "/action?changeLightColor"
 #define TOGGLE_STANDBY "/action?toggleStandby"
+#define JSON "/data.json"
 #define OK "200"
 #define NOTFOUND "404"
 
@@ -83,7 +84,7 @@ response::response(int client_fd, request req){
 void response::handle_get(string path, int client_fd) {
 	if (strcasecmp(path.c_str(), HOME) == 0) {
 		// Home page
-		string address("./html/index-one-page.html");
+		string address("./html/index.html");
 		string type("text/html");
 		string res = get_temperature_string();
 		unordered_map<string, string> map = build_map(res);
@@ -106,7 +107,7 @@ void response::handle_get(string path, int client_fd) {
 	}
 	else if (strcasecmp(path.c_str(), TOGGLE_TEMP) == 0) {
 		// change temperature unit
-		string address("./html/index-one-page.html");
+		string address("./html/index.html");
 		string type("text/html");
 		change_temp();
 		sleep(1);
@@ -115,7 +116,7 @@ void response::handle_get(string path, int client_fd) {
 		replace_reply(address, type, client_fd, map);
 	} else if (strcasecmp(path.c_str(), CHANGE_COLOR) == 0) {
 		// change light color
-		string address("./html/index-one-page.html");
+		string address("./html/index.html");
 		string type("text/html");
 		change_color();
 		string res = get_temperature_string();
@@ -123,7 +124,7 @@ void response::handle_get(string path, int client_fd) {
 		replace_reply(address, type, client_fd, map);
 	} else if (strcasecmp(path.c_str(), TOGGLE_LIGHT) == 0) {
 		// turn the light on or off
-		string address("./html/index-one-page.html");
+		string address("./html/index.html");
 		string type("text/html");
 		toggle_light();
 		string res = get_temperature_string();
@@ -137,6 +138,11 @@ void response::handle_get(string path, int client_fd) {
 		string res = get_temperature_string();
 		unordered_map<string, string> map = build_map(res);
 		replace_reply(address, type, client_fd, map);
+	} else if (strcasecmp(path.c_str(), JSON) == 0) {
+		// json file
+		string address("./html/data.json");
+		string type("application/json");
+		reply_file(address, type, client_fd);
 	}
 }
 
