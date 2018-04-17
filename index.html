@@ -27,8 +27,9 @@
             <h2><b>ARDUINO WEB INTERFACE</b></h2>
           </div>
           <div class="col-lg-4">
-            <a href="/action?toggleTemp"><button id="toggleTemp" class="btn btn-success btn-header float-right">&deg;C / &deg;F</button></a>
-            <a href="/action?toggleStandby"><button id="toggleStandby" class="btn btn-success btn-header float-right">STANDBY</button></a>
+            <a href="#"><button id="toggle-temp" class="btn btn-success btn-header float-right">&deg;C / &deg;F</button></a>
+            <!-- <a href="/action?toggleTemp"><button id="toggle-temp" class="btn btn-success btn-header float-right">&deg;C / &deg;F</button></a> -->
+            <a href="/action?toggleStandby"><button id="toggle-standby" class="btn btn-success btn-header float-right">STANDBY</button></a>
           </div>
         </div>
         <hr>
@@ -40,20 +41,20 @@
           </div>
           <div class="col-lg-2">
             <h5>MOST RECENT:</h5>
-            <h1 id="current-temp" class="temp-display">$temp</h1>
+            <h1 id="current-temp" class="temp-display">--</h1>
             <br>
             <h5>LOWEST:</h5>
-            <h1 class="temp-display">25.7&deg;C</h1>
+            <h1 id="lowest-temp" class="temp-display">--</h1>
             <br>
             <a href="/action?toggleLight"><button id="toggleLight" class="btn btn-primary full-width">LIGHT ON/OFF</button></a>
             <a href="/action?changeLightColor"><button id="changeLightColor"  class="btn btn-primary full-width">CHANGE COLOR</button></a>
           </div>
           <div class="col-lg-2">
             <h5>AVERAGE:</h5>
-            <h1 class="temp-display">27.9&deg;C</h1>
+            <h1 id="average-temp" class="temp-display">--</h1>
             <br>
             <h5>HIGHEST:</h5>
-            <h1 class="temp-display">29.6&deg;C</h1>
+            <h1 id="highest-temp" class="temp-display">--</h1>
             <br>
             <h5>TIME ELAPSED:</h5>
             <h1 id="time-elapsed" class="time-display">00:00:00</h1>
