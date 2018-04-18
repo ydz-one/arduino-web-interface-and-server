@@ -1,4 +1,4 @@
-// Temperature display and JSON data parsing
+// Global variables
 var isCelsius = true;
 var currentTempC = 0;
 var highestTempC = 0;
@@ -7,15 +7,40 @@ var averageTempC = 0;
 var graphTempVals = [];
 var graphTimeVals = [];
 
+// EventListeners for buttons
 document.getElementById('toggle-temp').addEventListener('click', function() {
+  // Change browser temperature display
   isCelsius = isCelsius ? false : true;
   updateTempDisplay();
+
+  // Send GET request to server
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/action?toggleTemp', true);
 });
 
+document.getElementById('toggle-standby').addEventListener('click', function() {
+  // Send GET request to server
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/action?toggleStandby', true);
+});
+
+document.getElementById('toggle-light').addEventListener('click', function() {
+  // Send GET request to server
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/action?toggleLight', true);
+});
+
+document.getElementById('change-light-color').addEventListener('click', function() {
+  // Send GET request to server
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/action?changeLightColor', true);
+});
+
+
+// Temperature update
 loadTemp();
 
 function loadTemp() {
-  console.log('calling load temp');
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'data.json', true);
 
