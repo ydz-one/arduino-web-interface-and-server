@@ -9,8 +9,12 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-    <!-- Import plotly.js -->
+    <!--
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    -->
+
+    <!-- Import d3.js -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
 
     <!-- Import Roboto Font -->
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -35,7 +39,9 @@
         <br>
         <div class="row">
           <div class="col-lg-8">
-            <div id="plot">
+            <div id="div-plot">
+              <svg id="svg-plot">
+              </svg>
             </div>
           </div>
           <div class="col-lg-2">
@@ -61,7 +67,6 @@
         </div>
       </div>
     </div>
-    <script src="graph.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

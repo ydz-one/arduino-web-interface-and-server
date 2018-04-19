@@ -37,7 +37,12 @@ body {
   font-weight: 100;
 }
 
-#plot {
+#div-plot {
   height:400px;
   background-color: #eee;
+}
+
+#svg-plot {
+  height: 400px;
+  width: 700px;
 }
