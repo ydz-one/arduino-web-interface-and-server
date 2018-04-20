@@ -2,9 +2,10 @@
 var isCelsius = true;
 var currentTempC = 0;
 var highestTempC = 0;
-var lowestTempC = 0;
+var lowestTempC = 200;
 var averageTempC = 0;
 var xhr;
+var changeColor = false;
 
 // Global variables for graph
 var graphData = [];
@@ -22,24 +23,28 @@ document.getElementById('toggle-temp').addEventListener('click', function() {
   // Send GET request to server
   xhr = new XMLHttpRequest();
   xhr.open('GET', '/action?toggleTemp', true);
+  xhr.send();
 });
 
 document.getElementById('toggle-standby').addEventListener('click', function() {
   // Send GET request to server
   xhr = new XMLHttpRequest();
   xhr.open('GET', '/action?toggleStandby', true);
+  xhr.send();
 });
 
 document.getElementById('toggle-light').addEventListener('click', function() {
   // Send GET request to server
   xhr = new XMLHttpRequest();
-  xhr.open('GET', '/action?toggleLight', true);
+  xhr.open('GET', '/action?toggleLight', false);
+  xhr.send();
 });
 
 document.getElementById('change-light-color').addEventListener('click', function() {
   // Send GET request to server
   xhr = new XMLHttpRequest();
   xhr.open('GET', '/action?changeLightColor', true);
+  xhr.send();
 });
 
 
