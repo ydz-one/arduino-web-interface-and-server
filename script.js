@@ -205,11 +205,11 @@ function plotGraph() {
       .attr("x", padding / 4)
       .attr("y", padding)
       .attr("class", "axis-label")
-      .text("°C");
+      .text("C");
 
   svg.append("text")
       .attr("x", w - padding / 2)
       .attr("y", padding)
       .attr("class", "axis-label")
-      .text("°F");
+      .text("F");
 }
