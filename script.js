@@ -6,6 +6,7 @@ var lowestTempC = 200;
 var averageTempC = 0;
 var xhr;
 var changeColor = false;
+var standbyMode = false;
 
 // Global variables for graph
 var graphData = [];
@@ -16,9 +17,11 @@ var h = 400;
 
 // EventListeners for buttons
 document.getElementById('toggle-temp').addEventListener('click', function() {
-  // Change browser temperature display
-  isCelsius = isCelsius ? false : true;
-  updateTempDisplay();
+  // Change browser temperature display if not in standbyMode
+  if (!standbyMode) {
+    isCelsius = isCelsius ? false : true;
+    updateTempDisplay();
+  }
 
   // Send GET request to server
   xhr = new XMLHttpRequest();
@@ -27,6 +30,17 @@ document.getElementById('toggle-temp').addEventListener('click', function() {
 });
 
 document.getElementById('toggle-standby').addEventListener('click', function() {
+  standbyMode = standbyMode ? false : true;
+
+  if (standbyMode) {
+    document.getElementById('current-temp').innerHTML = 'Standby';
+    document.getElementById('lowest-temp').innerHTML = 'Standby';
+    document.getElementById('highest-temp').innerHTML = 'Standby';
+    document.getElementById('average-temp').innerHTML = 'Standby';
+  } else {
+    loadTemp();
+  }
+
   // Send GET request to server
   xhr = new XMLHttpRequest();
   xhr.open('GET', '/action?toggleStandby', true);
@@ -52,6 +66,11 @@ document.getElementById('change-light-color').addEventListener('click', function
 loadTemp();
 
 function loadTemp() {
+  // Do nothing if in standby mode
+  if (standbyMode) {
+    return;
+  }
+
   xhr = new XMLHttpRequest();
   xhr.open('GET', 'data.json', true);
 
@@ -81,13 +100,26 @@ function loadTemp() {
 
 function updateTempDisplay() {
   document.getElementById('current-temp').innerHTML = isCelsius ?
-      currentTempC + "&deg;C" : currentTempC * 9 / 5 + 32 + "&deg;F";
+      cleanNumber(currentTempC) + "&deg;C" : cleanNumber(currentTempC * 9 / 5 + 32) + "&deg;F";
   document.getElementById('lowest-temp').innerHTML = isCelsius ?
-      lowestTempC + "&deg;C" : lowestTempC * 9 / 5 + 32 + "&deg;F";
+      cleanNumber(lowestTempC) + "&deg;C" : cleanNumber(lowestTempC * 9 / 5 + 32) + "&deg;F";
   document.getElementById('highest-temp').innerHTML = isCelsius ?
-      highestTempC + "&deg;C" : highestTempC * 9 / 5 + 32 + "&deg;F";
+      cleanNumber(highestTempC) + "&deg;C" : cleanNumber(highestTempC * 9 / 5 + 32) + "&deg;F";
   document.getElementById('average-temp').innerHTML = isCelsius ?
-      averageTempC + "&deg;C" : averageTempC * 9 / 5 + 32 + "&deg;F";
+      cleanNumber(averageTempC) + "&deg;C" : cleanNumber(averageTempC * 9 / 5 + 32) + "&deg;F";
+}
+
+// Round numbers to 1 decimal place
+function cleanNumber(num) {
+  // Round number to 1 decimal place
+  var out = Math.round(num * 10) / 10;
+
+  // If whole number, append '.0' to it
+  if (out % 1 === 0) {
+    out = out + '.0';
+  }
+
+  return out;
 }
 
 // Elapsed time display
@@ -113,8 +145,6 @@ function updateTime() {
 updateTime();
 
 // D3 graph
-
-
 function plotGraph() {
   document.getElementById('svg-plot').innerHTML = "";
   var xScale = d3.scaleTime()
