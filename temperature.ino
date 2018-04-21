@@ -33,7 +33,7 @@ const byte NumberLookup[16] =   {0x3F,0x06,0x5B,0x4F,0x66,
 
 /* Function prototypes */
 void Cal_temp (int&, byte&, byte&, bool&, bool&);
-void Dis_7SEG (int, byte, byte, bool, bool);
+void Dis_7SEG (int, byte, byte, bool, bool, bool);
 void Send7SEG (byte, byte);
 void SerialMonitorPrint (byte, int, bool);
 void UpdateRGB (byte);
@@ -157,13 +157,10 @@ void loop()
       setColor(0, 0, 0); // turn off the light
     }
 
-    if (!isStandBy) {
+    
         /* Display temperature on the 7-Segment */
-        Dis_7SEG (Decimal, Temperature_H, Temperature_L, IsPositive, isF);
-    } else {
-      // in the stand by mode
-        
-    }
+        Dis_7SEG (Decimal, Temperature_H, Temperature_L, IsPositive, isF, isStandBy);
+    
     
     delay (1000);        /* Take temperature read every 1 second */
   }
@@ -221,8 +218,9 @@ void Cal_temp (int& Decimal, byte& High, byte& Low, bool& sign, bool& isF)
  Purpose: 
    Display number on the 7-segment display.
 ****************************************************************************/
-void Dis_7SEG (int Decimal, byte High, byte Low, bool sign, bool isF)
+void Dis_7SEG (int Decimal, byte High, byte Low, bool sign, bool isF, bool isStandby)
 {
+  if(!isStandby){
   byte Digit = 4;                 /* Number of 7-Segment digit */
   byte Number;                    /* Temporary variable hold the number to display */
   
@@ -282,6 +280,13 @@ void Dis_7SEG (int Decimal, byte High, byte Low, bool sign, bool isF)
   {
     Send7SEG (Digit,0x00);    
   }  
+  }
+  else{
+    Send7SEG(4, 0x00);
+    Send7SEG(3, 0x00);
+    Send7SEG(2, 0x00);
+    Send7SEG(1, 0x00);
+  }
 }
 
 /***************************************************************************
