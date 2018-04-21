@@ -19,7 +19,6 @@ http://www.binarii.com/files/papers/c_sockets.txt
 #include <fcntl.h>
 #include <signal.h>
 #include <pthread.h>
-#include <json/json.h>
 #include <iostream>
 #include <fstream>
 #include "response.h"
@@ -140,7 +139,21 @@ void* start_server(void* arg){
       return 0;
     } 
 
+/*
+ * function for the read quit thread to keep reading form the stdin
+ */
+void* read_quit(void *arg) {
+	bool is_quit = false;
+	while (!is_quit) {
+		int c;
+		c = getchar();
+		if (c == 'q') {
+			is_quit = true;
+		}
+	}
 
+	exit(1);
+}
 
 int main(int argc, char *argv[]){
 // check the number of arguments
@@ -158,6 +171,10 @@ int main(int argc, char *argv[]){
 	printf("\nPlease specify a port number greater than 1024\n");
 	exit(-1);
   }
+
+  // create another thread to read from the stdin
+  pthread_t thread_quit;
+  pthread_create(&thread_quit, NULL, read_quit, NULL);
 
   fd_usb = open(file_name, O_RDWR | O_NOCTTY | O_NDELAY);
   write(fd_usb, "f" ,1);
