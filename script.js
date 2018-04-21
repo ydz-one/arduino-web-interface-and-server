@@ -172,17 +172,38 @@ function plotGraph() {
 
   svg.append("g")
      .attr("transform", "translate(0, " + (h - padding) + ")")
+     .attr("class", "axis")
      .call(xAxis);
 
   var yAxisC = d3.axisLeft(yScaleC);
 
   svg.append("g")
      .attr("transform", "translate(" + padding + ", 0)")
+     .attr("class", "axis")
      .call(yAxisC);
 
-  var yAxisF = d3.axisLeft(yScaleF);
+  var yAxisF = d3.axisRight(yScaleF);
 
   svg.append("g")
       .attr("transform", "translate(" + (w - padding) + ", 0)")
+      .attr("class", "axis")
       .call(yAxisF);
+
+  svg.append("text")
+      .attr("x", w / 2)
+      .attr("y", h - padding / 4)
+      .attr("class", "axis-label")
+      .text("Time");
+
+  svg.append("text")
+      .attr("x", padding / 4)
+      .attr("y", padding)
+      .attr("class", "axis-label")
+      .text("°C");
+
+  svg.append("text")
+      .attr("x", w - padding / 2)
+      .attr("y", padding)
+      .attr("class", "axis-label")
+      .text("°F");
 }
