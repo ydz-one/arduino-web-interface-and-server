@@ -77,6 +77,12 @@ function loadTemp() {
   xhr.onload = function() {
     if (this.status == 200) {
       var temp = JSON.parse(this.responseText);
+
+      if (temp.status == 0) {
+        alert("Error occurred while attempting to read from Arduino.");
+        return;
+      }
+
       timeNow = Date.now();
       graphData.push([temp.current, timeNow]);
 
