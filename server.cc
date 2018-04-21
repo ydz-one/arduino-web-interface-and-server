@@ -19,8 +19,11 @@ http://www.binarii.com/files/papers/c_sockets.txt
 #include <fcntl.h>
 #include <signal.h>
 #include <pthread.h>
+#include <dirent.h>
+//#include <json/json.h>
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 #include "response.h"
 #include "request.h"
 
@@ -38,13 +41,16 @@ string max_temperature_C = string("0");
 string max_temperature_F = string("0");
 vector<string> all_temperature_C;
 vector<string> all_temperature_F;
+//unordered_set<string> previous_files;
 float temperature_sum_C = 0;
 float temperature_sum_F = 0;
+bool no_error = true;
 
 // functional pointer
-void parse_temperature();
+void parse_temperature(bool current_status);
 string convert_C_to_F(string temp);
 string convert_F_to_C(string temp);
+bool check_status();
 
 
 void configure(int fd) {
@@ -139,177 +145,209 @@ void* start_server(void* arg){
       return 0;
     } 
 
-/*
+ /*
  * function for the read quit thread to keep reading form the stdin
  */
 void* read_quit(void *arg) {
-	bool is_quit = false;
-	while (!is_quit) {
-		int c;
-		c = getchar();
-		if (c == 'q') {
-			is_quit = true;
-		}
-	}
+  bool is_quit = false;
+  while (!is_quit) {
+    int c;
+    c = getchar();
+    if (c == 'q') {
+      is_quit = true;
+    }
+  }
 
-	exit(1);
+  exit(1);
 }
 
-int main(int argc, char *argv[]){
+    int main(int argc, char *argv[]){
 // check the number of arguments
 
-  if (argc != 3) {
-	printf("\nUsage: %s [port_number] [file_name]\n", argv[0]);
-	exit(-1);
-  }
+      if (argc != 3) {
+        printf("\nUsage: %s [port_number] [file_name]\n", argv[0]);
+        exit(-1);
+      }
+      port_number = atoi(argv[1]);
+      file_name = (char*)malloc(sizeof(char) * (strlen(argv[2]) + 1));
+      strcpy(file_name, argv[2]);
 
-  port_number = atoi(argv[1]);
-  file_name = (char*)malloc(sizeof(char) * (strlen(argv[2]) + 1));
-  strcpy(file_name, argv[2]);
+      if (port_number <= 1024) {
+        printf("\nPlease specify a port number greater than 1024\n");
+        exit(-1);
+      }
+      pthread_t thread_quit;
+      pthread_create(&thread_quit, NULL, read_quit, NULL);
+      fd_usb = open(file_name, O_RDWR | O_NOCTTY | O_NDELAY);
+      write(fd_usb, "f" ,1);
+      if (fd_usb < 0) {
+        perror("Could not open file\n");
+        exit(1);
+      }
+      else {
+        printf("Successfully opened %s for reading and writing\n", (char*)file_name);
+      }
 
-  if (port_number <= 1024) {
-	printf("\nPlease specify a port number greater than 1024\n");
-	exit(-1);
-  }
-
-  // create another thread to read from the stdin
-  pthread_t thread_quit;
-  pthread_create(&thread_quit, NULL, read_quit, NULL);
-
-  fd_usb = open(file_name, O_RDWR | O_NOCTTY | O_NDELAY);
-  write(fd_usb, "f" ,1);
-  if (fd_usb < 0) {
-	perror("Could not open file\n");
-	exit(1);
-  }
-  else {
-	printf("Successfully opened %s for reading and writing\n", (char*)file_name);
-  }
-
-  configure(fd_usb);
+      configure(fd_usb);
 
 /*
 Write the rest of the program below, using the read and write system calls.
 */
-  int counter = 0;
-  int break_counter = 0;
-  char buffer_cpy[100];
-  pthread_t thread_accept;
-  int status_1 = pthread_create(&thread_accept, NULL, start_server, NULL);
-  while(1){
-	int bytes_read = read(fd_usb, buffer_temperature + counter, 100 - counter);
-	while(bytes_read < 0){
-	  bytes_read = read(fd_usb, buffer_temperature + counter, 100 - counter);
-	}
-	counter += bytes_read;
-	if(buffer_temperature[counter - 1] == '\n'){
-	  break_counter++;
-	  buffer_temperature[counter] = '\0';
-	  counter = 0;
-	  if(break_counter > 2){
-		strcpy(temperature, buffer_temperature);
-		parse_temperature(); // store the result to the vector
-		sleep(1); // read one new temperature per second
-	  }
-	  memset(buffer_temperature, '\0', 100);
-	}
-  }
-  close(fd_usb);
-  free(file_name);
+      int counter = 0;
+      int break_counter = 0;
+      int error_counter = 0;
+      char buffer_cpy[100];
+      pthread_t thread_accept;
+      bool current_status = check_status();
+      int status_1 = pthread_create(&thread_accept, NULL, start_server, NULL);
+      while(1){
+        if(current_status){
+          int bytes_read = read(fd_usb, buffer_temperature + counter, 100 - counter);
+        //current_status = check_status();
+          while(bytes_read < 0 && error_counter < 20000){
+            bytes_read = read(fd_usb, buffer_temperature + counter, 100 - counter);
+            error_counter++;
+          }
+    //if(current_status){
+      //cout << "True" << endl;
+          error_counter = 0;
+          counter += bytes_read;
+          if(buffer_temperature[counter - 1] == '\n'){
+            break_counter++;
+            buffer_temperature[counter] = '\0';
+            counter = 0;
+            if(break_counter > 2){
+              strcpy(temperature, buffer_temperature);
+    //bool current_status = check_status();
+		          parse_temperature(true); // store the result to the vector
+              sleep(1); // read one new temperature per second
+          }
+          memset(buffer_temperature, '\0', 100);
+//}
+        }
+      }
+      else{
+        cout << "False..." << endl;
+        parse_temperature(false);
+        sleep(1);
+      }
+//else{
+  //cout << "False" << endl;
+  //parse_temperature(current_status);
+      current_status = check_status();
+//}
+    }
+    close(fd_usb);
+    free(file_name);
 
-}
+  }
+
+
 
 /*
  * parse the temperature string and update the result
  */
-void parse_temperature() {
-	string temp;
-	string unit;
-	char token_array[100];
-	char token_array_2[100];
-	char copy[100];
-	strcpy(copy, temperature);
+  void parse_temperature(bool current_status) {
+   string temp;
+   string unit;
+   char token_array[100];
+   char token_array_2[100];
+   char copy[100];
+   strcpy(copy, temperature);
 
-	char* token;
+   char* token;
 
-	token = strtok(copy, " ");
+   token = strtok(copy, " ");
 
 	// get temperature and unit
-	strcpy(token_array, token);
-	temp = string(token_array);
-	temp = temp.substr(0, 4);
-	token = strtok(NULL, " ");
+   strcpy(token_array, token);
+   temp = string(token_array);
+   temp = temp.substr(0, 4);
+   token = strtok(NULL, " ");
 
-	strcpy(token_array_2, token);
-	unit = string(token_array_2);
+   strcpy(token_array_2, token);
+   unit = string(token_array_2);
 
-	string temp_F;
-	string temp_C;
+   string temp_F;
+   string temp_C;
 
 	// update the vector
-	if (strcasecmp(unit.c_str(), "c\n") == 0) {
+   if (strcasecmp(unit.c_str(), "c\n") == 0) {
 		// Celsius
-		temp_C = temp;
-		temp_F = convert_C_to_F(temp);
-	} else if (strcasecmp(unit.c_str(), "f\n") == 0) {
+    temp_C = temp;
+    temp_F = convert_C_to_F(temp);
+  } else if (strcasecmp(unit.c_str(), "f\n") == 0) {
 		// Fahrenheit
-		temp_F = temp;
-		temp_C = convert_F_to_C(temp);
-	}
+    temp_F = temp;
+    temp_C = convert_F_to_C(temp);
+  }
 
-	all_temperature_C.push_back(temp_C);
-	all_temperature_F.push_back(temp_F);
+  all_temperature_C.push_back(temp_C);
+  all_temperature_F.push_back(temp_F);
 
-	float remove_C = 0;
-	float remove_F = 0;
+  float remove_C = 0;
+  float remove_F = 0;
 
-	if (all_temperature_C.size() == 3600) {
+  if (all_temperature_C.size() == 3600) {
 		// only record one hour
-		remove_C = atof(all_temperature_C.at(0).c_str());
-		all_temperature_C.erase(all_temperature_C.begin());
-		remove_F = atof(all_temperature_F.at(0).c_str());
-		all_temperature_F.erase(all_temperature_C.begin());
-	}
+    remove_C = atof(all_temperature_C.at(0).c_str());
+    all_temperature_C.erase(all_temperature_C.begin());
+    remove_F = atof(all_temperature_F.at(0).c_str());
+    all_temperature_F.erase(all_temperature_C.begin());
+  }
 
 	// update global variable
-	float ftemp_F = atof(temp_F.c_str());
-	float ftemp_C = atof(temp_C.c_str());
+  float ftemp_F = atof(temp_F.c_str());
+  float ftemp_C = atof(temp_C.c_str());
 
-	temperature_sum_C += ftemp_C - remove_C;
-	temperature_sum_F += ftemp_F - remove_F;
+  temperature_sum_C += ftemp_C - remove_C;
+  temperature_sum_F += ftemp_F - remove_F;
 
-	avg_temperature_C = to_string(temperature_sum_C / all_temperature_C.size()).substr(0, 4);
-	avg_temperature_F = to_string(temperature_sum_F / all_temperature_F.size()).substr(0, 4);
+  avg_temperature_C = to_string(temperature_sum_C / all_temperature_C.size()).substr(0, 4);
+  avg_temperature_F = to_string(temperature_sum_F / all_temperature_F.size()).substr(0, 4);
 
-	if (ftemp_F > atof(max_temperature_F.c_str())) {
-		max_temperature_F = temp_F;
-	}
+  if (ftemp_F > atof(max_temperature_F.c_str())) {
+    max_temperature_F = temp_F;
+  }
 
-	if (ftemp_F < atof(min_temperature_F.c_str())) {
-		min_temperature_F = temp_F;
-	}
+  if (ftemp_F < atof(min_temperature_F.c_str())) {
+    min_temperature_F = temp_F;
+  }
 
-	if (ftemp_C > atof(max_temperature_C.c_str())) {
-		max_temperature_C = temp_C;
-	}
+  if (ftemp_C > atof(max_temperature_C.c_str())) {
+    max_temperature_C = temp_C;
+  }
 
-	if (ftemp_C < atof(min_temperature_C.c_str())) {
-		min_temperature_C = temp_C;
-	}
+  if (ftemp_C < atof(min_temperature_C.c_str())) {
+    min_temperature_C = temp_C;
+  }
 
 	// write the temperature to json
 
 
-	ofstream file;
-	file.open("./html/data.json");
-	file << string("{") << "\n";
-	file << string("\"current\" : ") << atof(temp_C.c_str()) << string(",\n");
-	file << string("\"highest\" : ") << atof(max_temperature_C.c_str()) << string(",\n");
-	file << string("\"lowest\" : ") << atof(min_temperature_C.c_str()) << string(",\n");
-	file << string("\"average\" : ") << atof(avg_temperature_C.c_str()) << string("\n");
-	file << string("}");
+  ofstream file;
+  file.open("./html/data.json");
+  file << string("{") << "\n";
+  if(current_status){
+    file << string("\"status\" : 1,\n");
+    file << string("\"current\" : ") << atof(temp_C.c_str()) << string(",\n");
+    file << string("\"highest\" : ") << atof(max_temperature_C.c_str()) << string(",\n");
+    file << string("\"lowest\" : ") << atof(min_temperature_C.c_str()) << string(",\n");
+    file << string("\"average\" : ") << atof(avg_temperature_C.c_str()) << string("\n");
+    
+  }
+  else{
+    file << string("\"status\" : 0,\n");
+    file << string("\"current\" : ") << string("-9000,\n");
+    file << string("\"highest\" : ") << string("-9000,\n");
+    file << string("\"lowest\" : ") << string("-9000,\n");
+    file << string("\"average\" : ") << string("-9000\n");
+    
+  }
+  file << string("}");
 
-	file.close();
+
+  file.close();
 }
 
 /*
@@ -332,5 +370,50 @@ string convert_F_to_C(string temp) {
 	return temp_C.substr(0, 4);
 }
 
+bool check_status(){
+  unordered_set<string> current_files;
+  DIR* device_dir = opendir("/dev");
+  //cout << "Directory opened!!!" << endl;
+  if(device_dir == NULL) {
+    close(fd_usb);
+    return false;
+  }
+  struct dirent* file_struct = readdir(device_dir);
+  while(file_struct != NULL){
+    if(string(file_struct->d_name).substr(0, 6) == "ttyACM"){
+      current_files.insert(file_struct->d_name);
+      break;
+    }
+    file_struct = readdir(device_dir); 
+  }
+  closedir(device_dir);
+  unordered_set<string>::iterator test_it;
+  //for(test_it = current_files.begin(); test_it != current_files.end(); test_it++){
+  //  cout << *test_it << " ";
+  //}
+  //cout << endl;
+  if(current_files.size() == 0){
+    close(fd_usb);
+    no_error = false;
+    return false;
+  }
+  else if(!no_error && current_files.size() > 0){
+    unordered_set<string>::iterator it = current_files.begin();
+    string device_name = "/dev/" + *it;
+    cout << device_name << endl << endl;
+    fd_usb = open(device_name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    write(fd_usb, "f" ,1);
+    if (fd_usb < 0) {
+      perror("Could not open file\n");
+      exit(1);
+    }
+    else {
+      printf("Successfully opened %s for reading and writing\n", (char*)file_name);
+    }
+    configure(fd_usb);
+    no_error = true;
+    return true;
+  }
 
+}
 
